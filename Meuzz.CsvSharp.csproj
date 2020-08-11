@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackOnBuild>true</PackOnBuild>
+    <PackageVersion>0.1</PackageVersion>
+    <Authors>hironobu koura</Authors>
+    <Copyright>hironobu koura</Copyright>
+    <Owners>hironobu koura</Owners>
+    <PackageProjectUrl>https://github.com/hironobu/Meuzz.CsvSharp</PackageProjectUrl>
+    <Description>C# library for handling CSV files.</Description>
+  </PropertyGroup>
+
+</Project>
