@@ -9,6 +9,13 @@
     <Owners>hironobu koura</Owners>
     <PackageProjectUrl>https://github.com/hironobu/Meuzz.CsvSharp</PackageProjectUrl>
     <Description>C# library for handling CSV files.</Description>
+    <PackageId>Meuzz.CsvSharp</PackageId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NuGet.Build.Packaging" Version="0.2.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>
