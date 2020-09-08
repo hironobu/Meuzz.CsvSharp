@@ -8,29 +8,43 @@ namespace Meuzz.CsvSharp
 {
     public class CsvFileLoader
     {
-        public DataSet<T> LoadFromFile<T>(string filename, Func<string[], string[], T> func)
+        public DataSet<T> LoadFromFile<T>(string filename, Func<string[], string[], (T, string[])> func)
         {
-            var reader = new StreamReader(filename);
-            var csv = new CsvReader(reader);
+            return LoadFromStreamReader(new StreamReader(filename), func);
+        }
+
+        public DataSet<T> LoadFromStreamReader<T>(StreamReader stream, Func<string[], string[], (T, string[])> func)
+        {
+            var csv = new CsvReader(stream);
 
             var header = csv.Read();
+
             if (header.GroupBy(s => s).Where(s => s.Count() > 1).Any())
             {
-                throw new Exception("duplicated columns exist.");
+                throw new Exception("columns duplicated.");
             }
 
+            var cols = header;
             var rows = new List<T>();
             string[] row;
             while ((row = csv.Read()) != null)
             {
-                rows.Add(func(header, row));
-            }
-            if (!rows.Any())
-            {
-                throw new Exception("empty rows");
+                var (r, newcols) = func(header, row);
+                if (r == null) { continue; }
+                rows.Add(r);
+
+                if (newcols != null)
+                {
+                    cols = newcols;
+                }
             }
 
-            return new DataSet<T>(header, rows.ToArray());
+            if (!rows.Any())
+            {
+                throw new Exception("no data");
+            }
+
+            return new DataSet<T>(cols, rows.ToArray());
         }
 
         public bool WriteToFile<T>(string filename, DataSet<T> dataSet, Func<T, string, object> func)
