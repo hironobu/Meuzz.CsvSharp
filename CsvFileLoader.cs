@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Data;
 
-namespace CsvSharp
+namespace Meuzz.CsvSharp
 {
     public class CsvFileLoader
     {

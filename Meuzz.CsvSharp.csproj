@@ -3,14 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <PackOnBuild>true</PackOnBuild>
-    <PackageVersion>0.1.1</PackageVersion>
+    <PackageVersion>0.2.0</PackageVersion>
     <Authors>hironobu koura</Authors>
     <Copyright>hironobu koura</Copyright>
     <Owners>hironobu koura</Owners>
     <PackageProjectUrl>https://github.com/hironobu/Meuzz.CsvSharp</PackageProjectUrl>
     <Description>C# library for handling CSV files.</Description>
     <PackageId>Meuzz.CsvSharp</PackageId>
-    <ReleaseVersion>0.1.1</ReleaseVersion>
+    <ReleaseVersion>0.2.0</ReleaseVersion>
     <SynchReleaseVersion>false</SynchReleaseVersion>
   </PropertyGroup>
 
