@@ -6,6 +6,10 @@ namespace Meuzz.CsvSharp
 {
     public class DataSet<T>
     {
+        public DataSet()
+        {
+        }
+
         public DataSet(string[] cols, T[] rows)
         {
             Columns = cols;
@@ -14,36 +18,56 @@ namespace Meuzz.CsvSharp
 
         public string[] Columns { get; set; }
 
-        public T[] Rows { get; }
+        public T[] Rows { get; set; }
 
-        public DataSet<T> ColumnFilteredDataSet(string[] cols)
+        public T2 ColumnFilteredDataSet<T2>(string[] cols) where T2 : DataSet<T>, new()
         {
-            return new DataSet<T>(Columns.Where(x => cols.Contains(x)).ToArray(), Rows);
+            return new T2() { Columns = Columns.Where(x => cols.Contains(x)).ToArray(), Rows = Rows };
         }
-        public DataSet<T> ColumnExcludingDataSet(string[] cols)
+        public T2 ColumnExcludingDataSet<T2>(string[] cols) where T2 : DataSet<T>, new()
         {
-            return new DataSet<T>(Columns.Where(x => !cols.Contains(x)).ToArray(), Rows);
+            return new T2() { Columns = Columns.Where(x => !cols.Contains(x)).ToArray(), Rows = Rows };
         }
-    }
 
-    public static class DataSetExtensions
-    {
         /// <summary>
         /// 2つ以上のDataSetを連結する
         /// </summary>
-        /// <param name="containers"></param>
-        public static DataSet<Dictionary<string, object>> Concat(this IEnumerable<DataSet<Dictionary<string, object>>> dataSets)
+        /// <param name="dataSets"></param>
+        public static T1 CreateFromDataSets<T1>(IEnumerable<T1> dataSets) where T1 : DataSet<T>, new()
         {
             string[] cols = { };
-            Dictionary<string, object>[] rows = { };
+            T[] rows = { };
 
             if (dataSets.Any())
             {
                 cols = dataSets.FirstOrDefault()?.Columns;
-                rows = Arrays.Concat<Dictionary<string, object>>(dataSets.Select((x) => x.Rows).ToArray());
+                rows = Arrays.Concat<T>(dataSets.Select((x) => x.Rows).ToArray());
             }
 
-            return new DataSet<Dictionary<string, object>>(cols, rows);
+            return new T1() { Columns = cols, Rows = rows };
+        }
+
+    }
+
+    public static class DataSetExtensions
+    {
+        [Obsolete]
+        /// <summary>
+        /// 2つ以上のDataSetを連結する
+        /// </summary>
+        /// <param name="dataSets"></param>
+        public static T2 Concat<T, T2>(this IEnumerable<T2> dataSets) where T2 : DataSet<T>, new()
+        {
+            string[] cols = { };
+            T[] rows = { };
+
+            if (dataSets.Any())
+            {
+                cols = dataSets.FirstOrDefault()?.Columns;
+                rows = Arrays.Concat<T>(dataSets.Select((x) => x.Rows).ToArray());
+            }
+
+            return new T2() { Columns = cols, Rows = rows };
         }
     }
 }

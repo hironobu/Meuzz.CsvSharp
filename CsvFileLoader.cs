@@ -20,9 +20,7 @@ namespace Meuzz.CsvSharp
             var header = csv.Read();
 
             if (header.GroupBy(s => s).Where(s => s.Count() > 1).Any())
-            {
                 throw new Exception("columns duplicated.");
-            }
 
             var cols = header;
             var rows = new List<T>();
@@ -34,15 +32,11 @@ namespace Meuzz.CsvSharp
                 rows.Add(r);
 
                 if (newcols != null)
-                {
                     cols = newcols;
-                }
             }
 
             if (!rows.Any())
-            {
                 throw new Exception("no data");
-            }
 
             return new DataSet<T>(cols, rows.ToArray());
         }
