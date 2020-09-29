@@ -4,38 +4,41 @@ using System.Linq;
 
 namespace Meuzz.CsvSharp
 {
-    public class DataSet<T>
+    public class DataSet<C, T>
     {
         public DataSet()
         {
         }
 
-        public DataSet(string[] cols, T[] rows)
+        public DataSet(C[] keys, C[] cols, T[] rows)
         {
+            Keys = keys;
             Columns = cols;
             Rows = rows;
         }
 
-        public string[] Columns { get; set; }
+        public C[] Keys { get; set; }
+
+        public C[] Columns { get; set; }
 
         public T[] Rows { get; set; }
 
-        public T2 ColumnFilteredDataSet<T2>(string[] cols) where T2 : DataSet<T>, new()
+        public static T1 CreateWithFilteringColumns<T1>(T1 source, C[] cols) where T1 : DataSet<C, T>, new()
         {
-            return new T2() { Columns = Columns.Where(x => cols.Contains(x)).ToArray(), Rows = Rows };
+            return new T1() { Keys = source.Keys, Columns = source.Columns.Where(x => cols.Contains(x)).ToArray(), Rows = source.Rows };
         }
-        public T2 ColumnExcludingDataSet<T2>(string[] cols) where T2 : DataSet<T>, new()
+        public static T1 CreateWithExcludingColumns<T1>(T1 source, C[] cols) where T1 : DataSet<C, T>, new()
         {
-            return new T2() { Columns = Columns.Where(x => !cols.Contains(x)).ToArray(), Rows = Rows };
+            return new T1() { Keys = source.Keys, Columns = source.Columns.Where(x => !cols.Contains(x)).ToArray(), Rows = source.Rows };
         }
 
         /// <summary>
         /// 2つ以上のDataSetを連結する
         /// </summary>
         /// <param name="dataSets"></param>
-        public static T1 CreateFromDataSets<T1>(IEnumerable<T1> dataSets) where T1 : DataSet<T>, new()
+        public static T1 CreateFromDataSets<T1>(IEnumerable<T1> dataSets) where T1 : DataSet<C, T>, new()
         {
-            string[] cols = { };
+            C[] cols = { };
             T[] rows = { };
 
             if (dataSets.Any())
@@ -44,7 +47,7 @@ namespace Meuzz.CsvSharp
                 rows = Arrays.Concat<T>(dataSets.Select((x) => x.Rows).ToArray());
             }
 
-            return new T1() { Columns = cols, Rows = rows };
+            return new T1() { Keys = dataSets.FirstOrDefault()?.Keys, Columns = cols, Rows = rows };
         }
 
     }
@@ -56,9 +59,9 @@ namespace Meuzz.CsvSharp
         /// 2つ以上のDataSetを連結する
         /// </summary>
         /// <param name="dataSets"></param>
-        public static T2 Concat<T, T2>(this IEnumerable<T2> dataSets) where T2 : DataSet<T>, new()
+        public static T2 Concat<C, T, T2>(this IEnumerable<T2> dataSets) where T2 : DataSet<C, T>, new()
         {
-            string[] cols = { };
+            C[] cols = { };
             T[] rows = { };
 
             if (dataSets.Any())
@@ -67,7 +70,7 @@ namespace Meuzz.CsvSharp
                 rows = Arrays.Concat<T>(dataSets.Select((x) => x.Rows).ToArray());
             }
 
-            return new T2() { Columns = cols, Rows = rows };
+            return new T2() { Keys = dataSets.FirstOrDefault()?.Keys, Columns = cols, Rows = rows };
         }
     }
 }

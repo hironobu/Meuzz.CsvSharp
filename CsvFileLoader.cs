@@ -6,42 +6,61 @@ using System.Data;
 
 namespace Meuzz.CsvSharp
 {
-    public class CsvFileLoader
+    public class CsvFileLoader : CsvFileLoader<string>
     {
-        public DataSet<T> LoadFromFile<T>(string filename, Func<string[], string[], (T, string[])> func)
+    }
+
+    public class CsvFileLoader<C> where C : IConvertible
+    {
+        public CsvFileLoader()
         {
-            return LoadFromStreamReader(new StreamReader(filename), func);
         }
 
-        public DataSet<T> LoadFromStreamReader<T>(StreamReader stream, Func<string[], string[], (T, string[])> func)
+        public CsvFileLoader(Func<string[], C[]> headerfunc)
         {
-            var csv = new CsvReader(stream);
+            _headerfunc = headerfunc;
+        }
 
-            var header = csv.Read();
+        private Func<string[], C[]> _headerfunc = (string[] ss) =>
+        {
+            return ss.Select(x => (C)Convert.ChangeType(x, typeof(C))).ToArray();
+        };
+
+        public S LoadFromFile<S, T>(string filename, Func<C[], string[], (T, C[])> func) where S : DataSet<C, T>, new()
+        {
+            return LoadFromStreamReader<S, T>(new StreamReader(filename), func);
+        }
+
+        public S LoadFromStreamReader<S, T>(StreamReader streamReader, Func<C[], string[], (T, C[])> func) where S : DataSet<C, T>, new()
+        {
+            var csv = new CsvReader(streamReader);
+
+            C[] header = _headerfunc(csv.Read());
 
             if (header.GroupBy(s => s).Where(s => s.Count() > 1).Any())
                 throw new Exception("columns duplicated.");
 
+            var keys = new C[] { };
             var cols = header;
             var rows = new List<T>();
             string[] row;
             while ((row = csv.Read()) != null)
             {
-                var (r, newcols) = func(header, row);
+                var (r, ks) = func(header, row);
                 if (r == null) { continue; }
                 rows.Add(r);
 
-                if (newcols != null)
-                    cols = newcols;
+                if (ks != null)
+                    keys = ks;
             }
 
             if (!rows.Any())
                 throw new Exception("no data");
 
-            return new DataSet<T>(cols, rows.ToArray());
+            return new S() { Keys = keys, Columns = cols.Where(c => !keys.Contains(c)).ToArray(), Rows = rows.ToArray() };
         }
 
-        public bool WriteToFile<T>(string filename, DataSet<T> dataSet, Func<T, string, object> func)
+        public bool WriteToFile<T>(string filename, DataSet<C, T> dataSet, Func<T, C, object> func)
         {
             if (!Directory.Exists(Path.GetDirectoryName(filename)))
                 Directory.CreateDirectory(Path.GetDirectoryName(filename));
