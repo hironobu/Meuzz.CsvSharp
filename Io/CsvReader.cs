@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Meuzz.CsvSharp
+namespace Meuzz.CsvSharp.Io
 {
     public class CsvReader
     {

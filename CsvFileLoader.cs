@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Data;
+using Meuzz.Foundation;
+using Meuzz.CsvSharp.Io;
 
 namespace Meuzz.CsvSharp
 {
@@ -31,22 +33,26 @@ namespace Meuzz.CsvSharp
             return LoadFromStreamReader<S, T>(new StreamReader(filename), func);
         }
 
+        public S LoadFromStream<S, T>(Stream stream, Func<C[], string[], (T, C[])> func) where S : DataSet<C, T>, new()
+        {
+            return LoadFromStreamReader<S, T>(new StreamReader(stream), func);
+        }
+
         public S LoadFromStreamReader<S, T>(StreamReader streamReader, Func<C[], string[], (T, C[])> func) where S : DataSet<C, T>, new()
         {
             var csv = new CsvReader(streamReader);
 
-            C[] header = _headerfunc(csv.Read());
+            C[] cols = _headerfunc(csv.Read());
 
-            if (header.GroupBy(s => s).Where(s => s.Count() > 1).Any())
+            if (cols.GroupBy(s => s).Where(s => s.Count() > 1).Any())
                 throw new Exception("columns duplicated.");
 
             var keys = new C[] { };
-            var cols = header;
             var rows = new List<T>();
             string[] row;
             while ((row = csv.Read()) != null)
             {
-                var (r, ks) = func(header, row);
+                var (r, ks) = func(cols, row);
                 if (r == null) { continue; }
                 rows.Add(r);
 
@@ -57,22 +63,28 @@ namespace Meuzz.CsvSharp
             if (!rows.Any())
                 throw new Exception("no data");
 
-            return new S() { Keys = keys, Columns = cols.Where(c => !keys.Contains(c)).ToArray(), Rows = rows.ToArray() };
+            return new S() { KeyColumns = keys, Columns = cols.Where(c => !keys.Contains(c)).ToArray(), Rows = rows.ToArray() };
         }
 
-        public bool WriteToFile<T>(string filename, DataSet<C, T> dataSet, Func<T, C, object> func)
+        public bool WriteToFile<T>(string filename, DataSet<C, T> dataSet, Func<T, C[], string[]> func)
         {
-            if (!Directory.Exists(Path.GetDirectoryName(filename)))
-                Directory.CreateDirectory(Path.GetDirectoryName(filename));
+            return WriteToStreamWriter<T>(new StreamWriter(filename), dataSet, func);
+        }
 
-            using (var sw = new StreamWriter(filename, false))
+        public bool WriteToStream<T>(Stream stream, DataSet<C, T> dataSet, Func<T, C[], string[]> func)
+        {
+            return WriteToStreamWriter<T>(new StreamWriter(stream), dataSet, func);
+        }
+
+        public bool WriteToStreamWriter<T>(StreamWriter streamWriter, DataSet<C, T> dataSet, Func<T, C[], string[]> func)
+        {
+            CsvWriter writer = new CsvWriter(streamWriter);
+
+            writer.Write(dataSet.Columns.Select(c => c.ToString()).ToArray());
+
+            foreach (var row in dataSet.Rows)
             {
-                sw.WriteLine(string.Join(",", dataSet.Columns.Select(x => string.Format("\"{0}\"", x))));
-
-                foreach (var row in dataSet.Rows)
-                {
-                    sw.WriteLine(string.Join(",", dataSet.Columns.Select(x => string.Format("\"{0}\"", func(row, x)))));
-                }
+                writer.Write(func(row, dataSet.Columns));
             }
 
             return true;
