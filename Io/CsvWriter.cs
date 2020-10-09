@@ -15,17 +15,24 @@ namespace Meuzz.CsvSharp.Io
     {
         private StreamWriter _writer;
         private CsvWriterOptions _options;
+        private char _delimiter;
 
         private Func<string, string> _quotefunc = null;
 
-        public CsvWriter(Stream stream, CsvWriterOptions options = CsvWriterOptions.None)
-            : this(new StreamWriter(stream), options)
+        public CsvWriter(string filename, char delimiter = ',', CsvWriterOptions options = CsvWriterOptions.None)
+            : this(new StreamWriter(filename), delimiter, options)
         {
         }
 
-        public CsvWriter(StreamWriter writer, CsvWriterOptions options = CsvWriterOptions.None)
+        public CsvWriter(Stream stream, char delimiter = ',', CsvWriterOptions options = CsvWriterOptions.None)
+            : this(new StreamWriter(stream), delimiter, options)
+        {
+        }
+
+        public CsvWriter(StreamWriter writer, char delimiter = ',', CsvWriterOptions options = CsvWriterOptions.None)
         {
             _writer = writer;
+            _delimiter = delimiter;
             _options = options;
 
             _quotefunc = x =>
@@ -73,7 +80,7 @@ namespace Meuzz.CsvSharp.Io
 
         public void Write(string[] row)
         {
-            _writer.WriteLine(string.Join(",", row.Select(x => _quotefunc(x))));
+            _writer.WriteLine(string.Join(_delimiter, row.Select(x => _quotefunc(x))));
         }
     }
 

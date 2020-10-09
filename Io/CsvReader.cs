@@ -14,6 +14,16 @@ namespace Meuzz.CsvSharp.Io
 
         private CsvReaderContext _context;
 
+        public CsvReader(string filename, char delimiter = ',')
+            : this(new StreamReader(filename), delimiter)
+        {
+        }
+
+        public CsvReader(Stream stream, char delimiter = ',')
+            : this(new StreamReader(stream), delimiter)
+        {
+        }
+
         public CsvReader(StreamReader reader, char delimiter = ',')
         {
             _reader = reader;

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <PackOnBuild>true</PackOnBuild>
-    <PackageVersion>0.2.7</PackageVersion>
+    <PackageVersion>0.3.0</PackageVersion>
     <Authors>hironobu koura</Authors>
     <Copyright>hironobu koura</Copyright>
     <Owners>hironobu koura</Owners>
