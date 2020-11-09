@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Meuzz.Foundation;
+using System.Threading.Tasks;
 
 namespace Meuzz.CsvSharp.Io
 {
@@ -42,7 +43,7 @@ namespace Meuzz.CsvSharp.Io
             };
             if ((_options & CsvWriterOptions.QuoteAlways) != CsvWriterOptions.None)
             {
-                _quotefunc = x => Quote(x);
+                _quotefunc = x => Quote(x ?? "");
             }
         }
 
@@ -75,12 +76,18 @@ namespace Meuzz.CsvSharp.Io
 
         private string Quote(string o)
         {
+            o = o ?? "";
             return $"\"{o.Replace("\"", "\"\"")}\"";
         }
 
-        public void Write(string[] row)
+        public void Write(IEnumerable<string> row)
         {
             _writer.WriteLine(string.Join(_delimiter, row.Select(x => _quotefunc(x))));
+        }
+
+        public void Flush()
+        {
+            _writer.Flush();
         }
     }
 
