@@ -7,27 +7,32 @@ namespace Meuzz.CsvSharp.Io
 {
     public class CsvReader
     {
+        private const char DefaultDelimiter = ',';
+        private const char DefaultQuote = '"';
+
+        private char _delimiter = DefaultDelimiter;
+        private char _quote = DefaultQuote;
+
         private StreamReader _reader;
-        private char _delimiter;
-        private char _quote = '"';
         private bool _inQuote = false;
 
         private CsvReaderContext _context;
 
-        public CsvReader(string filename, char delimiter = ',')
-            : this(new StreamReader(filename), delimiter)
+        public CsvReader(string filename, char quote = DefaultQuote, char delim = DefaultDelimiter)
+            : this(new StreamReader(filename), quote, delim)
         {
         }
 
-        public CsvReader(Stream stream, char delimiter = ',')
-            : this(new StreamReader(stream), delimiter)
+        public CsvReader(Stream stream, char quote = DefaultQuote, char delim = DefaultDelimiter)
+            : this(new StreamReader(stream), quote, delim)
         {
         }
 
-        public CsvReader(StreamReader reader, char delimiter = ',')
+        public CsvReader(StreamReader reader, char quote = DefaultQuote, char delim = DefaultDelimiter)
         {
             _reader = reader;
-            _delimiter = delimiter;
+            _delimiter = delim;
+            _quote = quote;
 
             _context = new CsvReaderContext();
             _inQuote = false;
@@ -48,7 +53,7 @@ namespace Meuzz.CsvSharp.Io
                         break;
                 }
 
-                _context.SetSource(line);
+                // _context.SetSource(line);
 
                 int i = 0, i0 = 0;
                 char[] charr = line.ToCharArray();
@@ -60,13 +65,13 @@ namespace Meuzz.CsvSharp.Io
                     {
                         if (c == '\\')
                         {
-                            _context.Append(i0, i);
+                            _context.Append(line, i0, i);
                             i++;
                             i0 = i;
                         }
                         else if (c == _quote)
                         {
-                            _context.Append(i0, i);
+                            _context.Append(line, i0, i);
                             i0 = i + 1;
                             if (i0 < charr.Length && charr[i0] == _quote)
                             {
@@ -82,13 +87,13 @@ namespace Meuzz.CsvSharp.Io
                     {
                         if (c == _delimiter)
                         {
-                            _context.Append(i0, i);
+                            _context.Append(line, i0, i);
                             _context.Push();
                             i0 = i + 1;
                         }
                         else if (c == _quote)
                         {
-                            _context.Append(i0, i);
+                            _context.Append(line, i0, i);
                             _inQuote = true;
                             i0 = i + 1;
                         }
@@ -97,7 +102,7 @@ namespace Meuzz.CsvSharp.Io
                     i++;
                 }
 
-                _context.Append(i0, i);
+                _context.Append(line, i0, i);
                 if (_inQuote)
                 {
                     _context.Append(Environment.NewLine);
@@ -115,7 +120,7 @@ namespace Meuzz.CsvSharp.Io
             private List<string> _strings;
             private StringBuilder _builder;
 
-            private string _source;
+            // private string _source;
 
             public CsvReaderContext()
             {
@@ -123,14 +128,14 @@ namespace Meuzz.CsvSharp.Io
                 _builder = new StringBuilder();
             }
 
-            public void SetSource(string src)
+            /*public void SetSource(string src)
             {
                 _source = src;
-            }
+            }*/
 
-            public void Append(int i0, int i)
+            public void Append(string s, int i0, int i)
             {
-                _builder.Append(_source, i0, i - i0);
+                _builder.Append(s, i0, i - i0);
             }
 
             public void Append(string s)
